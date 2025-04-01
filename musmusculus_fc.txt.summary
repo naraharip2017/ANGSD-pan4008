@@ -1,0 +1,15 @@
+Status	SRR21798749/SRR21798749.Aligned.sortedByCoord.out.bam	SRR21798750/SRR21798750.Aligned.sortedByCoord.out.bam	SRR21798751/SRR21798751.Aligned.sortedByCoord.out.bam	SRR21798755/SRR21798755.Aligned.sortedByCoord.out.bam	SRR21798756/SRR21798756.Aligned.sortedByCoord.out.bam	SRR21798757/SRR21798757.Aligned.sortedByCoord.out.bam
+Assigned	7047821	25901467	16985892	5995650	22107121	10177834
+Unassigned_Unmapped	0	0	0	0	0	0
+Unassigned_Read_Type	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0
+Unassigned_MappingQuality	0	0	0	0	0	0
+Unassigned_Chimera	0	0	0	0	0	0
+Unassigned_FragmentLength	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0
+Unassigned_MultiMapping	2959837	9345265	13475676	2302881	7806250	3096278
+Unassigned_Secondary	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0
+Unassigned_NoFeatures	2594373	5121808	7333909	1334643	4285047	2552452
+Unassigned_Overlapping_Length	0	0	0	0	0	0
+Unassigned_Ambiguity	151258	489118	731521	115083	373823	370821
