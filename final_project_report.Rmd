@@ -62,7 +62,7 @@ Run scripts in following order to reproduce results in report:
 5. run_feature_counts.sh
 6. run_rseqc.sh
 
-Through differential gene expression analysis, the hypothesis was supported that there were differences in transcript composition between embryos fertilized from paternal father that were exposed to alcohol and those that were not. Additionally, as hypothesized there was a downregulation in Fgf4 (Fibroblast growth factor 4) and Egfr (Epidermal growth factor), which are both critical regulators of trophectoderm stem cell growth and placental patterning [3]. Along with similar findings to the paper that utilized this dataset, I also found differential gene expression of Gm14137 and Gbp10, both of which are believed to impact GTP binding activity [4][5]. The GO enrichment analysis also found changes in expression around development, specifically with the eyes and sensory systems. Through this analysis, it is clear paternal consumption of alcohol impacts development of a fertilized embryo. Further experiments could be conducted to perform direct KO of the genes differentially expressed in this report and directly monitor phenotypic changes to further understand their impact on a growing embryo. 
+Through differential gene expression analysis, the hypothesis was supported that there were differences in transcript composition between embryos fertilized from paternal fathers that were exposed to alcohol and those that were not. Additionally, as hypothesized there was a downregulation in Fgf4 (Fibroblast growth factor 4) and Egfr (Epidermal growth factor), which are both critical regulators of trophectoderm stem cell growth and placental patterning [3]. Along with similar findings to the paper that utilized this dataset, I also found differential gene expression of Gm14137 and Gbp10, both of which are believed to impact GTP binding activity [4][5]. The GO enrichment analysis also found changes in expression around development, specifically with the eyes and sensory systems. Through this analysis, it is clear paternal consumption of alcohol impacts development of a fertilized embryo. Further experiments could be conducted to perform direct KO of the genes differentially expressed in this report and directly monitor phenotypic changes to further understand their impact on a growing embryo. 
 
 There are several limitations from the findings in this report. For example, the library was prepped using totalRNA, which captures abundant mRNA along with other non-protein coding RNAs. Additionally, as seen in the RSeQC results, there may be some degradation of transcripts causing a 3' bias and impacting what is seen in the results. Finally, since the experiments were conducted on mice, it is difficult to know if the findings would translate well to humans and how embryos from different species would be impacted.
 
@@ -111,7 +111,7 @@ After performing `fastqc` on the trimmed reads, the reports indicated adapters w
 knitr::include_graphics("figure_imgs/post_trimmed_fastqc.png")
 ```
 
-```{r plotPerBaseSequenceContentPostTrimmed, fig.cap="Figure 3: Example Post Trimmed FastQC report Per Base Sequence Content - sample SRR21798749", out.width="70%"}
+```{r plotPerBaseSequenceContentPostTrimmed, fig.cap="Figure 3: Example Post Trimmed FastQC report Per Base Sequence Content - sample SRR21798749_EXP1", out.width="70%"}
 knitr::include_graphics("figure_imgs/per_base_sequence_content.png")
 ```
 
@@ -390,7 +390,7 @@ As the tree plot shows, differential RNA expression was found across development
 
 I ran into the following issues during my analysis.
 
-1. During alignment viewing in IGV, I found there were many poor reads with large intron junctions, which would completely bypass whole genes. This is a result of technical mapping artifacts and not actually transcripts due to exon splicing. I re-ran my alignments to avoid these technical intron junctions by passing a parameter `--alignIntronMax`
+1. During alignment viewing in IGV, I found there were many poor reads with large intron junctions, which would completely bypass whole genes. This is a result of technical mapping artifacts and not actual transcripts due to exon splicing. I re-ran my alignments to avoid these technical intron junctions by passing a parameter `--alignIntronMax`
 2. During `featureCounts` execution, I initially only passed `-p` flag for handling paired-end reads, but I also needed to pass `--countReadPairs` to properly process paired-end reads. 
 3. `RSeQC` took a while to run because I could not convert the `refGene.gtf` file to the proper `BED12` format needed. Initially, I converted to `BED6` format using an AWK command, which caused errors with `RSeQC`. Eventually through some research online I found the UCSC tools to convert the `refGene.gtf` to `BED12` and was able to run `RSeQC`
 
@@ -401,7 +401,7 @@ datasets <- data.frame(
   Dataset = c("MusMusculus Feature Counts", "Go Term Enrichment", "Top 5 Differentially Expressed Genes"),
   Reasoning = c(
     "The feature counts table was kept for further data investigation and maintaining counts of transcript expression per sample",
-    "The Go Term enrichment was kept as an analysis of the feature counts data",
+    "The Go term enrichment was kept as an analysis of the feature counts data",
     "The differentially expressed dataset was kept in the report for additional analysis of the feature counts table and understanding the major differences that occurred between experimental and WT samples"
   ),
   stringsAsFactors = FALSE
