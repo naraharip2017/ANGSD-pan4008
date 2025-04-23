@@ -47,7 +47,7 @@ The central hypothesis is that embryonic gene expression is altered in embryos d
 
 - The data is paired-end
 
-- The library is unstranded
+- The library is unstranded (as found through IGV)
 
 # Results
 
@@ -64,7 +64,7 @@ Run scripts in following order to reproduce results in report:
 
 Through differential gene expression analysis, the hypothesis was supported that there were differences in transcript composition between embryos fertilized from paternal fathers that were exposed to alcohol and those that were not. Additionally, as hypothesized there was a downregulation in Fgf4 (Fibroblast growth factor 4) and Egfr (Epidermal growth factor), which are both critical regulators of trophectoderm stem cell growth and placental patterning [3]. Along with similar findings to the paper that utilized this dataset, I also found differential gene expression of Gm14137 and Gbp10, both of which are believed to impact GTP binding activity [4][5]. The GO enrichment analysis also found changes in expression around development, specifically with the eyes and sensory systems. Through this analysis, it is clear paternal consumption of alcohol impacts development of a fertilized embryo. Further experiments could be conducted to perform direct KO of the genes differentially expressed in this report and directly monitor phenotypic changes to further understand their impact on a growing embryo. 
 
-There are several limitations from the findings in this report. For example, the library was prepped using totalRNA, which captures abundant mRNA along with other non-protein coding RNAs. Additionally, as seen in the RSeQC results, there may be some degradation of transcripts causing a 3' bias and impacting what is seen in the results. Finally, since the experiments were conducted on mice, it is difficult to know if the findings would translate well to humans and how embryos from different species would be impacted.
+There are several limitations from the findings in this report. For example, the library was prepped using totalRNA, which captures abundant mRNA along with other non-protein coding RNAs. Additionally, as seen in the RSeQC results, there may be some degradation of transcripts causing a 3' bias and impacting what is seen in the results. Furthermore, after normalizng reads across samples, there was a lack of clustering between WT and EXP samples. This could be a result of low variance between the samples or issues with sample size, normalization, or technical issues. Finally, since the experiments were conducted on mice, it is difficult to know if the findings would translate well to humans and how embryos from different species would be impacted.
 
 # Methods
 
@@ -93,10 +93,16 @@ SRR21798749_1.fastq.gz  SRR21798749_2.fastq.gz
 
 Before performing alignments, I performed some quality control on the read files themselves. I first performed `fastqc` on the raw reads. I used two threads to process the two reads from paired-end reads. I used this [script](https://github.com/naraharip2017/ANGSD-pan4008/blob/main/scripts/run_preprocessing_fastqc.sh) to generate the fastqc reports
 
-Investigating the reports, there were 0 sequences flagged for bad quality but there was adapter contamination.
+I ran multiqc on the generated `fastqc` report. I excluded those in the `trimmed` explicitly since I ran `multiqc` on the pre-processed samples after trimming an initial couple samples
 
-```{r preTrimmedFastQC, fig.cap="Figure 1: Example FastQC report on pre-processed data showing adapter contamination - sample SRR21798749_EXP1", out.width="70%"}
-knitr::include_graphics("figure_imgs/pre_processed_adapter_reads.png")
+```{bash preProcessedMultiQC, eval=FALSE}
+multiqc $(find . -type d -name "*_fastqc" -not -path "*/trimmed/*") -o multiqc_report
+```
+
+Investigating the reports, there were 0 sequences flagged for bad quality but there was adapter contamination and some sequence duplication.
+
+```{r preTrimmedFastQC, fig.cap="Figure 1: Multiqc for all pre-processed samples", out.width="70%"}
+knitr::include_graphics("figure_imgs/pre_processed_multiqc.png")
 ```
 
 I then ran the following [script](https://github.com/naraharip2017/ANGSD-pan4008/blob/main/scripts/trim_samples_run_fastqc.sh) which did the following steps:
@@ -104,16 +110,24 @@ I then ran the following [script](https://github.com/naraharip2017/ANGSD-pan4008
 1. `trim_galore` to remove the adapters from the reads. I passed Illumina because I knew that the sequencing was done on an Illumina platform. I outputted to a `trimmed/` directory per sample. 
 2. `fastqc` was run on the trimmed samples and reports were investigated after to ensure samples removed adapters properly
 
-After performing `fastqc` on the trimmed reads, the reports indicated adapters were removed and 0 poor quality reads still. However, the reports indicated `FAIL` for `Per base sequence content` so that may indicate a source of bias or error in subsequent analysis. Though looking at the plots for the samples, as shown in Figure 3, there looks to be a drop in A%, which may be due to the poly-A tail being trimmed. 
+I then ran multiqc to concantenate the results of the reports. I explicitly used the trimmed directories in each sample to generate results for the post-adapter trimmed reports
+
+```{bash postTrimmedMultiQC, eval=FALSE}
+multiqc $(find . -type d -path "*/trimmed/*_fastqc") -o multiqc_report_trimmed
+```
+
+After performing `fastqc` on the trimmed reads, the reports indicated adapters were removed and 0 poor quality reads still. However, the reports indicated `FAIL` for `Per base sequence content` so that may indicate a source of bias or error in subsequent analysis. Though looking at the plots for the samples, as shown in Figure 3, there seems to be a false failure, as trim-galore will often remove the poly-A tail as a result of matching with illumina adapters [Source](https://github.com/FelixKrueger/TrimGalore/issues/81). 
 
 
-```{r postTrimmedFastQC, fig.cap="Figure 2: Example Post Trimmed FastQC report on pre-processed data showing adapter contamination - sample SRR21798749_EXP1", out.width="70%"}
-knitr::include_graphics("figure_imgs/post_trimmed_fastqc.png")
+```{r postTrimmedFastQC, fig.cap="Figure 2: Multiqc for all post-trimmed samples", out.width="70%"}
+knitr::include_graphics("figure_imgs/post_trimmed_multiqc.png")
 ```
 
 ```{r plotPerBaseSequenceContentPostTrimmed, fig.cap="Figure 3: Example Post Trimmed FastQC report Per Base Sequence Content - sample SRR21798749_EXP1", out.width="70%"}
 knitr::include_graphics("figure_imgs/per_base_sequence_content.png")
 ```
+
+For the one sample that failed sequence duplication, I checked it's `FastQC` report and found that the overrepresented sequence is `CCCGGCTATCCGGGGCCAACCGAGGCTCCTTCGGCGCTGCCGTATCGTTC`. I ran the sequence through [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastSearch&VIEW_SEARCH=on&UNIQ_SEARCH_NAME=A_SearchOptions_1u7Q4m_jVR_dePhsmvIFqaa_GTJ71_2DnHNF) and found it was rRNA. The original paper did not remove rRNA, so I kept it in the library for subsequent analysis.
 
 ### Creating Reference Genome
 
@@ -147,7 +161,10 @@ The `featureCounts` produced a `musmusculus_fc.txt` output, which I then used fo
 
 ### Alignment QC
 
-Prior to performing differential gene expression analysis, I performed QC on the  generated alignments for each sample. I ran `rseqc`, which required a BED file for the reference genome rather than a `.gtf` file. I utilized `UCSC` tools to generate a BED file from the earlier downloaded `refGene.gtf.gz` file. 
+Prior to performing differential gene expression analysis, I performed QC on the  generated alignments for each sample. I first manually investigated the STAR `Log.Final.Out` and found most samples aligned ~60-70% of their reads uniquely.
+
+
+I then ran `rseqc`, which required a BED file for the reference genome rather than a `.gtf` file. I utilized `UCSC` tools to generate a BED file from the earlier downloaded `refGene.gtf.gz` file. 
 
 ```{bash createBEDFile, eval=FALSE}
 conda create --name pan4008 python=3.10
@@ -175,7 +192,7 @@ The read distribution plot shows some intergenic reads, showing a potential sour
 knitr::include_graphics("figure_imgs/rseqc_gene_body_coverage_plot.png")
 ```
 
-The gene body coverage plot shows some bias towards the 3' end showing there may be some mRNA degradation occurring, which was captured in the library.
+The gene body coverage plot shows some bias towards the 3' end showing there may be some mRNA degradation occurring or batch effect, which was captured in the library.
 
 Using the `featureCounts` summary file, I then plotted the aligned reads per sample to make sure most were aligned. As Figure 6 shows, there looks to be some reads that were multimapped, ambiguous, or no features, which is something that may have impacted subsequent analysis.
 
@@ -273,6 +290,34 @@ main = "Figure 9: Size-factor-normalized read counts",
 ylab ="log2(read counts)", cex = .6)
 ```
 
+```{r}
+log_counts <- log2(counts(dds_musmusculus, normalized = FALSE) + 1)
+assay(dds_musmusculus, "log_counts") <- log2(counts(dds_musmusculus, normalized = FALSE) + 1)
+assay(dds_musmusculus, "log_norm_counts") <- log2(counts(dds_musmusculus, normalized=TRUE) + 1)
+
+dst_rlog <- rlog(dds_musmusculus, blind = TRUE)
+
+rlog_norm_counts <- assay(dst_rlog)
+
+corr_coeff <- cor(rlog_norm_counts, method ="pearson")
+as.dist(1-corr_coeff, upper=TRUE) %>%
+as.matrix %>%
+pheatmap::pheatmap(main="Figure 10: Pearson correlation between samples",
+treeheight_row=0)
+```
+
+```{r pca}
+rv <- rowVars(rlog_norm_counts)
+top_variable <- order(rv, decreasing = TRUE)[seq_len(500)]
+pca <- prcomp(t(rlog_norm_counts[top_variable, ]))
+plotPCA(dst_rlog) +
+labs(color=NULL) +
+theme_bw() + 
+ggtitle("Figure 11: PCA of Top 500 Most Variable Genes")
+```
+
+Both the Pearson Plot and PCA were unable to cluster the WT and EXP samples well. This may be due to low sample size or normalization removing bioligical signal.
+
 ### Run differential gene expression analysis with DESeq2
 
 After loading and exploring the data, I then ran differential gene expression analysis using the created `DESeq2` object
@@ -295,6 +340,19 @@ Results were subsetted to just those genes whose adjusted p-values (after multip
 ```{r get_deg}
 DGE_genes <- subset(DGE_results, padj < 0.05)
 DGE_genes <- DGE_genes[order(DGE_genes$padj), ]
+
+num_deg <- nrow(DGE_genes)
+print(paste("Number of differentially expressed genes (padj < 0.05):", num_deg))
+
+total_genes <- nrow(DGE_results)
+
+deg_proportion <- num_deg / total_genes
+print(paste("Proportion of differentially expressed genes:", round(deg_proportion, 4)))
+```
+
+Similar to the paper, a low amount of genes were found to be differentially expressed between WT and EXP conditions. In the paper the authors relaxed the p-value 0.05 threshold for subsequent analysis, but for the purposes of this report only analysis was conducted on the stringent threshold. 
+
+```{r generateTop5DiffExpressedGenesTable}
 top5_genes <- head(DGE_genes, 5)
 knitr::kable(top5_genes, caption = "Table 2: Top 5 Differentially Expressed Genes (sorted by adjusted p-value)")
 ```
@@ -375,7 +433,7 @@ treemap(
   vSize = "value",
   type = "categorical",
   vColor = "representative",
-  title = "Figure 10: Revigo TreeMap for Go Enriched Terms",
+  title = "Figure 12: Revigo TreeMap for Go Enriched Terms",
   inflate.labels = FALSE,      # set this to TRUE for space-filling group labels - good for posters
   lowerbound.cex.labels = 0,   # try to draw as many labels as possible (still, some small squares may not get a label)
   bg.labels = "#CCCCCCAA",   # define background color of group labels
